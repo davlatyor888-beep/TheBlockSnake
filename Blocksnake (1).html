@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="uz"> 
+ <head> 
+  <meta charset="UTF-8"> 
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+  <title>BlockSnake</title> 
+  <style>
+        body {
+            text-align: center;
+            font-family: Arial, sans-serif;
+            background-color: #222;
+            color: white;
+        }
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        canvas {
+            background-color: black;
+            border: 3px solid white;
+            width: 360px;
+            height: 360px;
+        }
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            width: 300px;
+            margin-top: 10px;
+        }
+        .control-left, .control-right {
+            display: flex;
+            flex-direction: column;
+        }
+        button {
+            font-size: 20px;
+            padding: 15px;
+            margin: 5px;
+            cursor: pointer;
+        }
+    </style> 
+ </head> 
+ <body> 
+  <h1>BlockSnake</h1> 
+  <p>Ball: <span id="score">0</span></p> 
+  <div class="game-container"> 
+   <canvas id="gameCanvas" width="360" height="320"></canvas> 
+   <div class="controls"> 
+    <div class="control-center"> <button onclick="setDirection(-speed, 0)">⬅️</button> <button onclick="setDirection(speed, 0)">➡️</button> 
+    </div> 
+    <div class="control-right"> <button onclick="setDirection(0, -speed)">⬆️</button> <button onclick="setDirection(0, speed)">⬇️</button> 
+    </div> 
+   </div> 
+  </div> <button id="startBtn" onclick="startGame()">▶️ Boshlash</button> <button id="restartBtn" style="display: none;" onclick="restartGame()">🔄 Qayta boshlash</button> 
+  <script src="game.js"></script> 
+  <h1 style="color:darkgreen">Developed Davlatyor</h1> 
+  <h1 style="color:darkgreen">ReDeaveloped Davlatyor</h1>
+ 
+<script type="text/javascript" id="dcoder_script">const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+const scoreElement = document.getElementById("score");
+const startBtn = document.getElementById("startBtn");
+const restartBtn = document.getElementById("restartBtn");
+
+const gridSize = 20;
+const canvasSize = 360;
+const playableHeight = 320;
+const speed = 20;
+
+let snake = [{ x: 200, y: 200 }];
+let food = { x: 100, y: 100 };
+let direction = { x: 0, y: 0 };
+let nextDirection = { x: 0, y: 0 };
+let score = 0;
+let gameRunning = false;
+let gameInterval;
+
+// Oq devorlar
+const walls = [
+    { x: 0, y: 0, width: canvasSize, height: gridSize },
+    { x: 0, y: gridSize, width: gridSize, height: playableHeight - gridSize },
+    { x: canvasSize - gridSize, y: gridSize, width: gridSize, height: playableHeight - gridSize },
+    { x: 0, y: playableHeight - gridSize, width: canvasSize, height: gridSize }
+];
+
+// Grid chiziqlarini chizish
+function drawGrid() {
+    ctx.strokeStyle = "white";
+    ctx.lineWidth = 1;
+
+    // Vertikal chiziqlar
+    for (let x = 0; x <= canvasSize; x += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, playableHeight);
+        ctx.stroke();
+    }
+
+    // Gorizontal chiziqlar
+    for (let y = 0; y <= playableHeight; y += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvasSize, y);
+        ctx.stroke();
+    }
+}
+
+// Devorlarni chizish
+function drawWalls() {
+    ctx.fillStyle = "white";
+    for (let wall of walls) {
+        ctx.fillRect(wall.x, wall.y, wall.width, wall.height);
+    }
+}
+
+// Yo‘nalishni o‘zgartirish
+function setDirection(x, y) {
+    if ((x !== -direction.x || y !== -direction.y) && gameRunning) {
+        nextDirection = { x, y };
+    }
+}
+
+// Tugmachalarni ishlatish
+document.addEventListener("keydown", function (event) {
+    if (event.key === "ArrowUp") setDirection(0, -speed);
+    if (event.key === "ArrowDown") setDirection(0, speed);
+    if (event.key === "ArrowLeft") setDirection(-speed, 0);
+    if (event.key === "ArrowRight") setDirection(speed, 0);
+});
+
+// Ilonni chizish
+function drawSnake() {
+    ctx.fillStyle = "grey";
+    for (let part of snake) {
+        ctx.fillRect(part.x, part.y, gridSize, gridSize);
+    }
+}
+
+// Ovqatni chizish
+function drawFood() {
+    ctx.fillStyle = "red";
+    ctx.fillRect(food.x, food.y, gridSize, gridSize);
+}
+
+// Ilonni harakatlantirish
+function moveSnake() {
+    direction = nextDirection;
+
+    let head = { x: snake[0].x + direction.x, y: snake[0].y + direction.y };
+    snake.unshift(head);
+
+    if (head.x === food.x && head.y === food.y) {
+        score++;
+        scoreElement.textContent = score;
+        food = {
+            x: Math.floor(Math.random() * ((canvasSize - 2 * gridSize) / gridSize)) * gridSize + gridSize,
+            y: Math.floor(Math.random() * ((playableHeight - 2 * gridSize) / gridSize)) * gridSize + gridSize
+        };
+    } else {
+        snake.pop();
+    }
+
+    if (head.x < 0 || head.x >= canvasSize || head.y < 0 || head.y >= playableHeight || checkCollision() || checkWallCollision(head)) {
+        endGame();
+    }
+}
+
+// Devor bilan to‘qnashuvni tekshirish
+function checkWallCollision(head) {
+    return walls.some(wall => 
+        head.x < wall.x + wall.width &&
+        head.x + gridSize > wall.x &&
+        head.y < wall.y + wall.height &&
+        head.y + gridSize > wall.y
+    );
+}
+
+// Ilon o‘ziga tegib qolsa tekshirish
+function checkCollision() {
+    return snake.slice(1).some(part => part.x === snake[0].x && part.y === snake[0].y);
+}
+
+// O‘yin boshlash funksiyasi
+function startGame() {
+    if (!gameRunning) {
+        gameRunning = true;
+        snake = [{ x: 200, y: 200 }];
+        direction = { x: 0, y: 0 };
+        nextDirection = { x: 0, y: 0 };
+        food = { x: 100, y: 100 };
+        score = 0;
+        scoreElement.textContent = score;
+        startBtn.style.display = "none";
+        restartBtn.style.display = "none";
+
+        gameInterval = setInterval(gameLoop, 150);
+    }
+}
+
+// O‘yin sikli
+function gameLoop() {
+    if (!gameRunning) return;
+    ctx.clearRect(0, 0, canvasSize, canvasSize);
+    drawGrid(); // Grid chiziqlarini chizish
+    drawWalls(); // Devorlarni chizish
+    drawSnake();
+    drawFood();
+    moveSnake();
+}
+
+// O‘yin tugatish funksiyasi
+function endGame() {
+    clearInterval(gameInterval);
+    gameRunning = false;
+    restartBtn.style.display = "block";
+}
+
+// O‘yin qayta boshlash
+function restartGame() {
+    startGame();
+}</script></body></html>
