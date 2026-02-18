@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlockSnake</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h1>BlockSnake</h1>
+<p>Ball: <span id="score">0</span></p>
+
+<div class="game-container">
+    <canvas id="gameCanvas" width="360" height="320"></canvas>
+
+    <div class="controls">
+        <div class="control-center">
+            <button onclick="setDirection(-speed, 0)">??</button>
+            <button onclick="setDirection(speed, 0)">??</button>
+        </div>
+
+        <div class="control-right">
+            <button onclick="setDirection(0, -speed)">??</button>
+            <button onclick="setDirection(0, speed)">??</button>
+        </div>
+    </div>
+</div>
+
+<button id="startBtn" onclick="startGame()">?? Boshlash</button>
+<button id="restartBtn" style="display:none;" onclick="restartGame()">?? Qayta boshlash</button>
+
+<h2 style="color:darkgreen">Developed Davlatyor</h2>
+
+<script src="game.js"></script>
+</body>
+</html>
